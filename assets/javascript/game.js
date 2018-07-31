@@ -30,84 +30,122 @@ var heroArray = ["Black-Widow", "Captain-America", "Hawkeye", "Hulk", "Iron-Man"
 var wins = 0;
 var loss = 0;
 // Hyphenation display
-var dashArray = [];
+var dashArray;
 // Letters in chosen word
-var letterArray = [];
+var letterArray;
 // Pushed to screen
-var dispArray = [];
-var guessCorrect = [];
-var guessLetters = [];
-var guessRemaining = 15;
-var wordRandom = "";
+var dispArray;
+var guessCorrect;
+var guessLetters;
+var guessRemaining;
+var wordRandom;
+
+function init() {
+    // reset varibles
+    dashArray = [];
+    letterArray = [];
+    dispArray = [];
+    guessCorrect = [];
+    guessLetters = [];
+    guessRemaining = 15;
+
+    // reset display elements
+    document.getElementById('lettersGuessed').innerHTML = "";
+    document.getElementById("guessesLeft").innerHTML = guessRemaining;
+    console.log("init");
+}
 
 function startGame() {
+    init();
     // Select random word from heroList array
     wordRandom = heroArray[Math.floor(Math.random() * heroArray.length)];
     // Convert CAPS to LC; splitting the word into array of characters
     letterArray = wordRandom.toLowerCase().split("");
     console.log(letterArray);
-    dashControl();
+    dashArray = dashControl(letterArray);
     document.getElementById('dispWord').innerHTML = dashArray.join(" ");
 }
+
 // Insert a dash if word is hyphenated
-function dashControl() {
-    var i;
-    for (i = 0; i < letterArray.length; i++) { 
-        if (letterArray[i] == "-") {
+function dashControl(letters) {
+    let i;
+    let dashArray = [];
+    for (i = 0; i < letters.length; i++) { 
+        if (letters[i] == "-") {
             dashArray.push("-");
         }
         else {
             dashArray.push("_");
         }
     }
+    return dashArray;
 }
+
+
+
+// listen for key press
+document.onkeyup = function(e) {
+    let keyPress = e.key.toLowerCase();
+    if (validateInput(keyPress) == true) {
+        letterGuess(keyPress);
+    }
+};
+
+// TODO: Fix issue with shift key input
+function validateInput(keyPress) {
+    if (keyPress.toLowerCase() == "shift"){
+        return false;
+    }
+
+    var letters = /^[a-z]{1}$/i;
+    if (!keyPress.match(letters)) {
+        alert('Please input letters only');
+        return false;
+    } else if (guessLetters.includes(keyPress) ){
+        alert('Letter already chosen');
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function letterGuess(keyPress) {
+    guessLetters.push(keyPress);
+    if (letterArray.includes(keyPress)){
+        for (i = 0; i < letterArray.length; i++) {
+            if (letterArray[i] == keyPress)  {
+                // Check if keyPress exists in word
+                dashArray[i] = keyPress;
+                guessCorrect.push(letterArray[i]);
+                console.log("correct guess!");
+            }
+        }
+    } else {
+        guessRemaining --;
+    }
+    // Update elements
+    document.getElementById("guessesLeft").innerHTML = guessRemaining;
+    document.getElementById('dispWord').innerHTML = dashArray.join(" ");
+    document.getElementById('lettersGuessed').innerHTML = guessLetters.join(", ").toUpperCase();
+    winLoss();
+}
+
 // Figured out wins issue = used .toString
 function winLoss() {
     //If letters guessed = chosen word letters
     if (letterArray.toString() == dashArray.toString()) {
         wins ++;
-        console.log("wins is working!");
+        alert("You Win!");
+        startGame();
     }
-    else if (guessRemaining == 0) {
-        loss++
-        //TODO create reset function
+    else if (guessRemaining <= 0) {
+        loss++;
+        alert("Thanos erases half the universe...");
+        startGame();
     }
     document.getElementById('wins').innerHTML = wins;
-}
-// console.log(wins);
+    document.getElementById('losses').innerHTML = loss;
 
-// TODO: Fix issue with shift key input
-function validateInput(keyPress) {
-    var letters = /^[a-z]*$/i;
-    if (!keyPress.match(letters)) {
-        alert('Please input letters only');
-        return false;
-    }
-    else {
-        return true;
-    }
 }
-document.onkeyup = function(e) {
-    var keyPress = e.key.toLowerCase();
-    if (validateInput(keyPress) == true) {
-        guessLetters.push(keyPress);
-        for (i = 0; i < letterArray.length; i++) {
-            if (letterArray[i] == keyPress)  {
-                // Check if keyPress exists in word
-                dashArray[i] = keyPress
-                guessCorrect.push(letterArray[i]);
-                console.log("correct guess!");
-            }
-        }
-    document.getElementById('dispWord').innerHTML = dashArray.join(" ");
-    document.getElementById('lettersGuessed').innerHTML = guessLetters.join(", ").toUpperCase();
-    }
-    console.log(keyPress);
-    console.log(guessLetters);
-    console.log(wordRandom);
-    console.log(dashArray);
-    console.log(letterArray);
-    // console.log(wins);
-    winLoss();
-}
+
 startGame();
